@@ -25,6 +25,9 @@
 //   sw           0100011   010       immediate
 //   jal          1101111   immediate immediate
 
+// New Instructions
+// xor            0110011  100        0000000 Done for now we think?
+// xori           0010011  100        0000000
 module testbench();
 
    logic        clk;
@@ -151,7 +154,7 @@ module aludec (input  logic       opb5,
    
    logic 			  RtypeSub;
    
-   assign RtypeSub = funct7b5 & opb5; // TRUE for R–type subtract
+   assign RtypeSub = funct7b5 & opb5; // TRUE for R–type subtrlwact
    always_comb
      case(ALUOp)
        2'b00: ALUControl = 3'b000; // addition
@@ -164,24 +167,34 @@ module aludec (input  logic       opb5,
 		  3'b010: ALUControl = 3'b101; // slt, slti
 		  3'b110: ALUControl = 3'b011; // or, ori
 		  3'b111: ALUControl = 3'b010; // and, andi
+      //Mariia - XOR Instruction
+      3'b100: ALUControl = 3'b100; //xor, xori
 		  default: ALUControl = 3'bxxx; // ???
 		endcase // case (funct3)       
      endcase // case (ALUOp)
    
 endmodule // aludec
 
+// //datapath dp (clk, reset, ResultSrc, PCSrc,
+// 		ALUSrc, RegWrite,
+// 		ImmSrc, ALUControl,
+// 		Zero, PC, Instr,
+// 		ALUResult, WriteData, ReadData);
+
 module datapath (input  logic        clk, reset,
 		 input  logic [1:0]  ResultSrc,
 		 input  logic 	     PCSrc, ALUSrc,
 		 input  logic 	     RegWrite,
-		 input  logic [1:0]  ImmSrc,
-		 input  logic [2:0]  ALUControl,
-		 output logic 	     Zero,
-		 output logic [31:0] PC,
-		 input  logic [31:0] Instr,
-		 output logic [31:0] ALUResult, WriteData,
-		 input  logic [31:0] ReadData);
-   
+		 input  logic [1:0]  ImmSrc,lw,
+     input  logic [2:0]  ALUControl,
+     input  logic        Zero,
+     input  logic [31:0] PC,
+     input  logic [31:0] Instr,
+     input  logic [31:0] WriteData,
+     input  logic [31:0] ReadData
+                              );
+
+   logic [2:0]           ALUResult;
    logic [31:0] 		     PCNext, PCPlus4, PCTarget;
    logic [31:0] 		     ImmExt;
    logic [31:0] 		     SrcA, SrcB;
@@ -269,7 +282,7 @@ module mux3 #(parameter WIDTH = 8)
    
 endmodule // mux3
 
-module top (input  logic        clk, reset,
+module top (input  logic        clk, reset,   //Mariia
 	    output logic [31:0] WriteData, DataAdr,
 	    output logic 	MemWrite);
    
@@ -324,7 +337,8 @@ module alu (input  logic [31:0] a, b,
        3'b001:  result = sum;         // subtract
        3'b010:  result = a & b;       // and
        3'b011:  result = a | b;       // or
-       3'b101:  result = sum[31] ^ v; // slt       
+       3'b101:  result = sum[31] ^ v; // slt 
+       3'b100:  result = a ^ b;       // Mariia XOR      
        default: result = 32'bx;
      endcase
 
