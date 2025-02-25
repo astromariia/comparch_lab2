@@ -85,7 +85,8 @@ module riscvsingle (input  logic        clk, reset,
 		    input  logic [31:0] ReadData);
    
    logic 				ALUSrc, RegWrite, Jump, Zero;
-   logic [1:0] 				ResultSrc, ImmSrc;
+   logic [1:0] 				ResultSrc;
+   logic [2:0]        ImmSrc;
    logic [2:0] 				ALUControl;
    
    controller c (Instr[6:0], Instr[14:12], Instr[30], Zero,
@@ -108,12 +109,12 @@ module controller (input  logic [6:0] op,
 		   output logic       MemWrite,
 		   output logic       PCSrc, ALUSrc,
 		   output logic       RegWrite, Jump,
-		   output logic [1:0] ImmSrc,
+		   output logic [2:0] ImmSrc,
 		   output logic [2:0] ALUControl);
    
    logic [1:0] 			      ALUOp;
    logic 			      Branch;
-   ALU
+
    maindec md (op, ResultSrc, MemWrite, Branch,
 	       ALUSrc, RegWrite, Jump, ImmSrc, ALUOp);
    aludec ad (op[5], funct3, funct7b5, ALUOp, ALUControl);
@@ -126,7 +127,7 @@ module maindec (input  logic [6:0] op,
 		output logic 	   MemWrite,
 		output logic 	   Branch, ALUSrc,
 		output logic 	   RegWrite, Jump,
-		output logic [1:0] ImmSrc,
+		output logic [2:0] ImmSrc,
 		output logic [1:0] ALUOp);
    
    logic [11:0] 		   controls;
@@ -143,7 +144,7 @@ module maindec (input  logic [6:0] op,
        7'b1100011: controls = 12'b0_010_0_0_00_1_01_0; // beq
        7'b0010011: controls = 12'b1_000_1_0_00_0_10_0; // I–type ALU
        7'b1101111: controls = 12'b1_011_0_0_10_0_00_1; // jal
-       7'b0110111: controls = 12'b1_100_1_0_11_0_XX_0 //for LUI, Result src is 11 for mux3
+       7'b0110111: controls = 12'b1_100_1_0_11_0_XX_0; //for LUI, Result src is 11 for mux3
        default: controls = 11'bx_xx_x_x_xx_x_xx_x; // ???
      endcase // case (op)
    
@@ -184,7 +185,7 @@ module datapath (input  logic        clk, reset,
 		 input  logic [1:0]  ResultSrc,
 		 input  logic 	     PCSrc, ALUSrc,
 		 input  logic 	     RegWrite,
-		 input  logic [1:0]  ImmSrc,
+		 input  logic [2:0]  ImmSrc,
 		 input  logic [2:0]  ALUControl,
 		 output logic 	     Zero,
 		 output logic [31:0] PC,
@@ -235,7 +236,7 @@ module extend (input  logic [31:7] instr,
        // J−type (jal)
        3'b011:  immext = {{12{instr[31]}}, instr[19:12], instr[20], instr[30:21], 1'b0};
        // U type (LUI)
-       3'b100: immext={instr[31:12],0000_0000_0000};
+       3'b100: immext= {instr[31:12], 12'b0000_0000_0000};
 
        default: immext = 32'bx; // undefinedRegWrite
      endcase // case (immsrc)
@@ -274,7 +275,7 @@ module mux2 #(parameter WIDTH = 8)
 endmodule // mux2
 
 module mux3 #(parameter WIDTH = 8)
-   (input  logic [WIDTH-1:0] d0, d1, d2,d3
+   (input  logic [WIDTH-1:0] d0, d1, d2,d3,
     input logic [1:0] 	     s,
     output logic [WIDTH-1:0] y);
    
