@@ -25,10 +25,11 @@
 //   sw           0100011   010       immediate
 //   jal          1101111   immediate immediate
 
-// New Instructions
-// xor            0110011  100        0000000 Done for now we think?
+// xor            0110011  100        0000000
 // xori           0010011  100        0000000
 //sll             0110011  001        0000000
+//lui             0110111
+
 module testbench();
 
    logic        clk;
@@ -44,7 +45,7 @@ module testbench();
    initial
      begin
 	string memfilename;
-        memfilename = {"../riscvtest/riscvtest.memfile"};
+        memfilename = {"../testing/xor.memfile"};
         $readmemh(memfilename, dut.imem.RAM);
      end
 
@@ -112,7 +113,7 @@ module controller (input  logic [6:0] op,
    
    logic [1:0] 			      ALUOp;
    logic 			      Branch;
-   
+   ALU
    maindec md (op, ResultSrc, MemWrite, Branch,
 	       ALUSrc, RegWrite, Jump, ImmSrc, ALUOp);
    aludec ad (op[5], funct3, funct7b5, ALUOp, ALUControl);
@@ -128,7 +129,7 @@ module maindec (input  logic [6:0] op,
 		output logic [1:0] ImmSrc,
 		output logic [1:0] ALUOp);
    
-   logic [10:0] 		   controls;
+   logic [11:0] 		   controls;
    
    assign {RegWrite, ImmSrc, ALUSrc, MemWrite,
 	   ResultSrc, Branch, ALUOp, Jump} = controls;
@@ -136,12 +137,13 @@ module maindec (input  logic [6:0] op,
    always_comb
      case(op)
        // RegWrite_ImmSrc_ALUSrc_MemWrite_ResultSrc_Branch_ALUOp_Jump
-       7'b0000011: controls = 11'b1_00_1_0_01_0_00_0; // lw
-       7'b0100011: controls = 11'b0_01_1_1_00_0_00_0; // sw
-       7'b0110011: controls = 11'b1_xx_0_0_00_0_10_0; // R–type
-       7'b1100011: controls = 11'b0_10_0_0_00_1_01_0; // beq
-       7'b0010011: controls = 11'b1_00_1_0_00_0_10_0; // I–type ALU
-       7'b1101111: controls = 11'b1_11_0_0_10_0_00_1; // jal
+       7'b0000011: controls = 12'b1_000_1_0_01_0_00_0; // lw
+       7'b0100011: controls = 12'b0_001_1_1_00_0_00_0; // sw
+       7'b0110011: controls = 12'b1_xx_0_0_00_0_10_0; // R–type
+       7'b1100011: controls = 12'b0_010_0_0_00_1_01_0; // beq
+       7'b0010011: controls = 12'b1_000_1_0_00_0_10_0; // I–type ALU
+       7'b1101111: controls = 12'b1_011_0_0_10_0_00_1; // jal
+       7'b0110111: controls = 12'b1_100_1_0_11_0_XX_0 //for LUI, Result src is 11 for mux3
        default: controls = 11'bx_xx_x_x_xx_x_xx_x; // ???
      endcase // case (op)
    
@@ -155,7 +157,7 @@ module aludec (input  logic       opb5,
    
    logic 			  RtypeSub;
    
-   assign RtypeSub = funct7b5 & opb5; // TRUE for R–type subtrlwact
+   assign RtypeSub = funct7b5 & opb5; // TRUE for R–type subtract
    always_comb
      case(ALUOp)
        2'b00: ALUControl = 3'b000; // addition
@@ -171,32 +173,25 @@ module aludec (input  logic       opb5,
       //Mariia - XOR Instruction
       3'b100: ALUControl = 3'b100; //xor, xori
       3'b001: ALUControl = 3'b110; // sll
+
 		  default: ALUControl = 3'bxxx; // ???
 		endcase // case (funct3)       
      endcase // case (ALUOp)
    
 endmodule // aludec
 
-// //datapath dp (clk, reset, ResultSrc, PCSrc,
-// 		ALUSrc, RegWrite,
-// 		ImmSrc, ALUControl,
-// 		Zero, PC, Instr,
-// 		ALUResult, WriteData, ReadData);
-
 module datapath (input  logic        clk, reset,
 		 input  logic [1:0]  ResultSrc,
 		 input  logic 	     PCSrc, ALUSrc,
 		 input  logic 	     RegWrite,
-		 input  logic [1:0]  ImmSrc,lw,
-     input  logic [2:0]  ALUControl,
-     input  logic        Zero,
-     input  logic [31:0] PC,
-     input  logic [31:0] Instr,
-     input  logic [31:0] WriteData,
-     input  logic [31:0] ReadData
-                              );
-
-   logic [2:0]           ALUResult;
+		 input  logic [1:0]  ImmSrc,
+		 input  logic [2:0]  ALUControl,
+		 output logic 	     Zero,
+		 output logic [31:0] PC,
+		 input  logic [31:0] Instr,
+		 output logic [31:0] ALUResult, WriteData,
+		 input  logic [31:0] ReadData);
+   
    logic [31:0] 		     PCNext, PCPlus4, PCTarget;
    logic [31:0] 		     ImmExt;
    logic [31:0] 		     SrcA, SrcB;
@@ -214,7 +209,7 @@ module datapath (input  logic        clk, reset,
    // ALU logic
    mux2 #(32)  srcbmux (WriteData, ImmExt, ALUSrc, SrcB);
    alu  alu (SrcA, SrcB, ALUControl, ALUResult, Zero);
-   mux3 #(32) resultmux (ALUResult, ReadData, PCPlus4,ResultSrc, Result);
+   mux3 #(32) resultmux (ALUResult, ReadData, PCPlus4,SrcB,ResultSrc, Result);
 
 endmodule // datapath
 
@@ -226,20 +221,23 @@ module adder (input  logic [31:0] a, b,
 endmodule
 
 module extend (input  logic [31:7] instr,
-	       input  logic [1:0]  immsrc,
+	       input  logic [2:0]  immsrc,
 	       output logic [31:0] immext);
    
    always_comb
      case(immsrc)
        // I−type
-       2'b00:  immext = {{20{instr[31]}}, instr[31:20]};
+       3'b000:  immext = {{20{instr[31]}}, instr[31:20]};
        // S−type (stores)
-       2'b01:  immext = {{20{instr[31]}}, instr[31:25], instr[11:7]};
+       3'b001:  immext = {{20{instr[31]}}, instr[31:25], instr[11:7]};
        // B−type (branches)
-       2'b10:  immext = {{20{instr[31]}}, instr[7], instr[30:25], instr[11:8], 1'b0};       
+       3'b010:  immext = {{20{instr[31]}}, instr[7], instr[30:25], instr[11:8], 1'b0};       
        // J−type (jal)
-       2'b11:  immext = {{12{instr[31]}}, instr[19:12], instr[20], instr[30:21], 1'b0};
-       default: immext = 32'bx; // undefined
+       3'b011:  immext = {{12{instr[31]}}, instr[19:12], instr[20], instr[30:21], 1'b0};
+       // U type (LUI)
+       3'b100: immext={instr[31:12],0000_0000_0000};
+
+       default: immext = 32'bx; // undefinedRegWrite
      endcase // case (immsrc)
    
 endmodule // extend
@@ -276,15 +274,15 @@ module mux2 #(parameter WIDTH = 8)
 endmodule // mux2
 
 module mux3 #(parameter WIDTH = 8)
-   (input  logic [WIDTH-1:0] d0, d1, d2,
+   (input  logic [WIDTH-1:0] d0, d1, d2,d3
     input logic [1:0] 	     s,
     output logic [WIDTH-1:0] y);
    
-  assign y = s[1] ? d2 : (s[0] ? d1 : d0);
+  assign y = s[1] ? (s[0] ? d3 : d2) : (s[0] ? d1 : d0);
    
 endmodule // mux3
 
-module top (input  logic        clk, reset,   //Mariia
+module top (input  logic        clk, reset,
 	    output logic [31:0] WriteData, DataAdr,
 	    output logic 	MemWrite);
    
@@ -341,7 +339,7 @@ module alu (input  logic [31:0] a, b,
        3'b011:  result = a | b;       // or
        3'b101:  result = sum[31] ^ v; // slt 
        3'b100:  result = a ^ b;       // Mariia XOR 
-       3'b110:  result = a << b[4:0]; // sll     
+       3'b110:  result = a << b[4:0]; // sll          
        default: result = 32'bx;
      endcase
 
