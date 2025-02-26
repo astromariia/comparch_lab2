@@ -104,7 +104,7 @@ endmodule // riscvsingle
 module controller (input  logic [6:0] op,
 		   input  logic [2:0] funct3,
 		   input  logic       funct7b5,
-		   input  logic       Zero,
+		   input  logic       Zero,//Negative Carry Overflow 
 		   output logic [1:0] ResultSrc,
 		   output logic       MemWrite,
 		   output logic       PCSrc, ALUSrc,
@@ -119,7 +119,16 @@ module controller (input  logic [6:0] op,
 	       ALUSrc, RegWrite, Jump, ImmSrc, ALUOp);
    aludec ad (op[5], funct3, funct7b5, ALUOp, ALUControl);
    assign PCSrc = Branch & (Zero ^ funct3[0]) | Jump;
-   
+   always_comb
+    case(funct3)
+    3'b000: PCSrc = Branch & Zero;                     // beg
+    3'b001: PCSrc = Branch & ~Zero;                    // bne
+    3'b100: PCSrc = Branch & (Negative != Overflow);   // blt (signed)
+    3'b101: PCSrc = Branch & (Negative == Overflow);   // bge (signed)
+    3'b110: PCSrc = Branch & ~Carry;                   // bltu (unsigned)
+    3'b111: PCSrc = Branch & Carry;                    // bgeu (unsigned)
+    default: PCSrc = 0;
+  endcase
 endmodule // controller
 
 module maindec (input  logic [6:0] op,
