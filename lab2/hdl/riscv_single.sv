@@ -104,7 +104,7 @@ endmodule // riscvsingle
 module controller (input  logic [6:0] op,
 		   input  logic [2:0] funct3,
 		   input  logic       funct7b5,
-		   input  logic       Zero,v//Negative Carry Overflow 
+		   input  logic       Zero,v,Negative//Negative Carry Overflow 
 		   output logic [1:0] ResultSrc,
 		   output logic       MemWrite,
 		   output logic       PCSrc, ALUSrc,
@@ -218,7 +218,7 @@ module datapath (input  logic        clk, reset,
    extend  ext (Instr[31:7], ImmSrc, ImmExt);
    // ALU logic
    mux2 #(32)  srcbmux (WriteData, ImmExt, ALUSrc, SrcB);
-   alu  alu (SrcA, SrcB, ALUControl, ALUResult, Zero,v);
+   alu  alu (SrcA, SrcB, ALUControl, ALUResult, Zero,v,Negative);
    mux3 #(32) resultmux (ALUResult, ReadData, PCPlus4,SrcB,ResultSrc, Result);
 
 endmodule // datapath
@@ -333,7 +333,8 @@ module alu (input  logic [31:0] a, b,
             output logic 	zero,v);
 
    logic [31:0] 	       condinvb, sum;
-  output logic 		       v;              // overflow
+  output logic 		       v;  // overflow
+  output logic Negative            //negative flag
    logic 		       isAddSub;       // true when is add or subtract operation
 
    assign condinvb = alucontrol[0] ? ~b : b;
@@ -355,6 +356,7 @@ module alu (input  logic [31:0] a, b,
 
    assign zero = (result == 32'b0);
    assign v = ~(alucontrol[0] ^ a[31] ^ b[31]) & (a[31] ^ sum[31]) & isAddSub;
+   assign Negative = (result[31]);
    
 endmodule // alu
 
