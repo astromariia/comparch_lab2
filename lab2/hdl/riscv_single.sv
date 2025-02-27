@@ -333,8 +333,6 @@ module alu (input  logic [31:0] a, b,
             output logic 	zero,v);
 
    logic [31:0] 	       condinvb, sum;
-  output logic 		       v;  // overflow
-  output logic Negative            //negative flag
    logic 		       isAddSub;       // true when is add or subtract operation
 
    assign condinvb = alucontrol[0] ? ~b : b;
