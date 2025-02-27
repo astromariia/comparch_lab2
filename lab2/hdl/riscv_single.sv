@@ -104,7 +104,7 @@ endmodule // riscvsingle
 module controller (input  logic [6:0] op,
 		   input  logic [2:0] funct3,
 		   input  logic       funct7b5,
-		   input  logic       Zero,//Negative Carry Overflow 
+		   input  logic       Zero,v//Negative Carry Overflow 
 		   output logic [1:0] ResultSrc,
 		   output logic       MemWrite,
 		   output logic       PCSrc, ALUSrc,
@@ -123,8 +123,8 @@ module controller (input  logic [6:0] op,
     case(funct3)
     3'b000: PCSrc = Branch & Zero;                     // beg
     3'b001: PCSrc = Branch & ~Zero;                    // bne
-    3'b100: PCSrc = Branch & (Negative != Overflow);   // blt (signed)
-    3'b101: PCSrc = Branch & (Negative == Overflow);   // bge (signed)
+    3'b100: PCSrc = Branch & (Negative != v);   // blt (signed)
+    3'b101: PCSrc = Branch & (Negative == v);   // bge (signed)
     3'b110: PCSrc = Branch & ~Carry;                   // bltu (unsigned)
     3'b111: PCSrc = Branch & Carry;                    // bgeu (unsigned)
     default: PCSrc = 0;
@@ -196,7 +196,7 @@ module datapath (input  logic        clk, reset,
 		 input  logic 	     RegWrite,
 		 input  logic [2:0]  ImmSrc,
 		 input  logic [2:0]  ALUControl,
-		 output logic 	     Zero,
+		 output logic 	     Zero,v
 		 output logic [31:0] PC,
 		 input  logic [31:0] Instr,
 		 output logic [31:0] ALUResult, WriteData,
@@ -218,7 +218,7 @@ module datapath (input  logic        clk, reset,
    extend  ext (Instr[31:7], ImmSrc, ImmExt);
    // ALU logic
    mux2 #(32)  srcbmux (WriteData, ImmExt, ALUSrc, SrcB);
-   alu  alu (SrcA, SrcB, ALUControl, ALUResult, Zero);
+   alu  alu (SrcA, SrcB, ALUControl, ALUResult, Zero,v);
    mux3 #(32) resultmux (ALUResult, ReadData, PCPlus4,SrcB,ResultSrc, Result);
 
 endmodule // datapath
@@ -330,10 +330,10 @@ endmodule // dmem
 module alu (input  logic [31:0] a, b,
             input  logic [2:0] 	alucontrol,
             output logic [31:0] result,
-            output logic 	zero);
+            output logic 	zero,v);
 
    logic [31:0] 	       condinvb, sum;
-   logic 		       v;              // overflow
+  output logic 		       v;              // overflow
    logic 		       isAddSub;       // true when is add or subtract operation
 
    assign condinvb = alucontrol[0] ? ~b : b;
