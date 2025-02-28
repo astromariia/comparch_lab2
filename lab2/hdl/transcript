@@ -3,7 +3,7 @@
 # ** Warning: (vlib-34) Library already exists at "work".
 # Errors: 0, Warnings: 1
 # Model Technology ModelSim SE-64 vlog 2021.3 Compiler 2021.07 Jul 13 2021
-# Start time: 15:33:26 on Feb 28,2025
+# Start time: 16:45:32 on Feb 28,2025
 # vlog riscv_single.sv 
 # -- Compiling module testbench
 # -- Compiling module riscvsingle
@@ -17,6 +17,7 @@
 # -- Compiling module flopenr
 # -- Compiling module mux2
 # -- Compiling module mux3
+# -- Compiling module mux4
 # -- Compiling module top
 # -- Compiling module imem
 # -- Compiling module dmem
@@ -26,13 +27,13 @@
 # Top level modules:
 # 	testbench
 # 	flopenr
-# End time: 15:33:26 on Feb 28,2025, Elapsed time: 0:00:00
+# End time: 16:45:33 on Feb 28,2025, Elapsed time: 0:00:01
 # Errors: 0, Warnings: 0
 # vsim -debugdb -voptargs="+acc" work.testbench 
-# Start time: 15:33:26 on Feb 28,2025
+# Start time: 16:45:33 on Feb 28,2025
 # ** Note: (vsim-3812) Design is being optimized...
 # ** Note: (vsim-8611) Generating debug db.
-# ** Note: (vopt-4301) Memory core inferred for signal 'RAM' width=32, depth=256, type=RAM at location riscv_single.sv:326
+# ** Note: (vopt-4301) Memory core inferred for signal 'RAM' width=32, depth=256, type=RAM at location riscv_single.sv:343
 # //  ModelSim SE-64 2021.3 Jul 13 2021
 # //
 # //  Copyright 1991-2021 Mentor Graphics Corporation
@@ -60,6 +61,7 @@
 # Loading work.regfile(fast)
 # Loading work.extend(fast)
 # Loading work.alu(fast)
+# Loading work.mux4(fast)
 # Loading work.mux3(fast)
 # Loading work.imem(fast)
 # Loading work.dmem(fast)
@@ -74,5 +76,5 @@
 # configure wave not supported in batch mode
 # configure wave not supported in batch mode
 # add schematic not supported in batch mode
-# End time: 15:33:36 on Feb 28,2025, Elapsed time: 0:00:10
+# End time: 16:46:59 on Feb 28,2025, Elapsed time: 0:01:26
 # Errors: 1, Warnings: 0
