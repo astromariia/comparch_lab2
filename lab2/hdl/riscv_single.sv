@@ -360,6 +360,7 @@ module alu (input  logic [31:0] a, b,
 
    assign Carryholder = a + condinvb + alucontrol[0];
    assign Carry= Carryholder[32];
+   assign sum= Carryholder[31:0];
    assign isAddSub = ~alucontrol[2] & ~alucontrol[1] |
                      ~alucontrol[1] & alucontrol[0];   
 
