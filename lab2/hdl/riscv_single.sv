@@ -46,7 +46,7 @@ module testbench();
    initial
      begin
 	string memfilename;
-        memfilename = {"../testing/jalr.memfile"};
+        memfilename = {"../testing/auipc.memfile"};
         $readmemh(memfilename, dut.imem.RAM);
      end
 
@@ -163,7 +163,8 @@ module maindec (input  logic [6:0] op,
        7'b1101111: controls = 15'b1_00_011_0_0_10_0_00_1_0; // jal
        7'b0110111: controls = 15'b1_00_100_1_0_11_0_XX_0_0; // lui
        7'b0010111: controls = 15'b1_10_100_1_0_11_0_XX_0_0; // auipc
-       7'b1100111: controls = 15'b1_01_011_0_0_10_0_00_1_1; // jalr
+       //7'b1100111: controls = 15'b1_01_011_0_0_10_0_00_1_1; // jalr
+       7'b1100111: controls = 15'b1_01_000_1_0_10_0_00_1_1; //jalr 
        default:    controls = 15'bx_xx_xxx_x_x_xx_x_xx_x_x; // default case
      endcase // case (op)
    
@@ -237,7 +238,7 @@ module datapath (input  logic        clk, reset,
    alu  alu (SrcA, SrcB, ALUControl, ALUResult, Zero,v,Negative,Carry);
    mux4 #(32) resultmux (ALUResult, ReadData, PCPlus4,SrcB,ResultSrc, Result);
    mux3 #(32) Regwritesrc(Result,PCPlus4,PCTarget,ReginControl,ResultRF);
-   mux2 #(32) PctargetJalr(PCTarget,Result,JalrControl,PCTargetNew);
+   mux2 #(32) PctargetJalr(PCTarget,ALUResult & ~32'h1,JalrControl,PCTargetNew);
 
 endmodule // datapath
 
