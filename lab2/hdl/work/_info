@@ -59,6 +59,7 @@ R0
 R0
 R0
 R0
+R0
 Z1 !s12c _opt1
 R0
 R1
@@ -104,10 +105,10 @@ n@_opt
 OL;O;2021.3_1;73
 R2
 T_opt1
-!s110 1740877918
-VWRf[XQbaO3G5:NY]7jI0M1
+!s110 1740879411
+Volja`h?ggHQP>CD?gPTzj2
 R3
-=1-a8934a884d97-67c3b05d-2b3-4f40
+=1-a8934a884d97-67c3b632-336-7fe0
 R4
 R5
 R6
@@ -115,13 +116,13 @@ n@_opt1
 OL;O;2021.3;73
 vadder
 Z7 DXx6 sv_std 3 std 0 22 9oUSJO;AeEaW`l:M@^WG92
-Z8 !s110 1740877917
+Z8 !s110 1740879410
 !i10b 1
 !s100 a95O6eF3O=lHeIK6;RLR<3
 I7;loQILo0oP^]`:acgk`B2
 S1
 Z9 dC:/Users/marii/OneDrive/Desktop/comparch_lab2/lab2/hdl
-Z10 w1740877884
+Z10 w1740879379
 Z11 8riscv_single.sv
 Z12 Friscv_single.sv
 !i122 0
@@ -131,7 +132,7 @@ Z14 OL;L;2021.3;73
 r1
 !s85 0
 31
-Z15 !s108 1740877916.000000
+Z15 !s108 1740879409.000000
 Z16 !s107 riscv_single.sv|
 Z17 !s90 -reportprogress|300|riscv_single.sv|
 !i113 0
@@ -163,7 +164,7 @@ R18
 R6
 valudec
 R7
-Z19 !s110 1740877916
+R8
 !i10b 1
 !s100 M_8H?3SYYERd9`WIidMf]1
 I38ka4dL4`n4N1HkQ_1c8b3
@@ -187,7 +188,7 @@ R18
 R6
 vcontroller
 R7
-R19
+R8
 !i10b 1
 !s100 DJKWTXXkffic=75ko55DM0
 Io4]Anlz:^ZHg8K@z9GT=>2
@@ -211,7 +212,7 @@ R18
 R6
 vdatapath
 R7
-R19
+R8
 !i10b 1
 !s100 TGBKn4G_F[`0YIIdH?@Gi1
 IN@lAY0Egih@>8`IeS=4153
@@ -355,7 +356,7 @@ R18
 R6
 vmaindec
 R7
-R19
+R8
 !i10b 1
 !s100 ]]kM;SeQ::boJ]j;1ocCn2
 IUl95bENRL@@lR?kG2;FKX2
@@ -475,7 +476,7 @@ R18
 R6
 vriscvsingle
 R7
-R19
+R8
 !i10b 1
 !s100 [P1n^5Y60W<9l9eGamiZi3
 I>TTfPkggTT0J[D=jK5T]b2
@@ -499,10 +500,10 @@ R18
 R6
 vtestbench
 R7
-R19
+R8
 !i10b 1
-!s100 l0Jhg3CYhbRW4VLe^egz@1
-IEi3>GjQofoW^O3C]g56?Z3
+!s100 N]_c:F_^?73^hiTfSHSfz0
+ImM2=dK;_QlO6z;2jWHV`F2
 S1
 R9
 R10

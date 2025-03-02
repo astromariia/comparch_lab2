@@ -46,7 +46,7 @@ module testbench();
    initial
      begin
 	string memfilename;
-        memfilename = {"../testing/auipc.memfile"};
+        memfilename = {"../testing/xor.memfile"};
         $readmemh(memfilename, dut.imem.RAM);
      end
 
