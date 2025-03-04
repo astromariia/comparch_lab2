@@ -138,11 +138,11 @@ module controller (input  logic [6:0] op,
   endcase
   always_comb 
     case (funct3)
-    3'b000: loadcontrol = 2'b00; // sw
-    3'b001: loadcontrol = 2'b01; // sh
-    3'b010: loadcontrol = 2'b10; // sb
-    default: loadcontrol = 2'b00; // sw
-  endcase
+        3'b000: loadcontrol = 2'b10; // SB (Store Byte)
+        3'b001: loadcontrol = 2'b01; // SH (Store Halfword)
+        3'b010: loadcontrol = 2'b00; // SW (Store Word)
+        default: loadcontrol = 2'b00; // Default to SW
+    endcase
 endmodule // controller
 
 module maindec (input  logic [6:0] op,
@@ -362,15 +362,20 @@ module dmem (input  logic        clk, we,
    assign rd = RAM[a[31:2]]; // word aligned
   //  always_ff @(posedge clk)
   //    if (we) RAM[a[31:2]] <= wd;
-  always @(posedge clk) // NOTE: always_ff is SystemVerilog
-    if (we)
-      case(loadcontrol)
-        2'b00: RAM[a[31:2]] <= wd; // sw 
-        2'b01: RAM[a[31:0]][15:0] <= wd[15:0]; // sh
-        2'b10: RAM[a[31:0]][7:0] <= wd[7:0]; // sb // sb
-    default: RAM[a[31:2]] <= wd;
-    // do nothing
-  endcase
+  always_ff @(posedge clk) begin
+        if (we) begin
+            case(loadcontrol)
+                2'b00: RAM[a[31:2]] <= wd;                 // sw (Store Word)
+                2'b01: // SH (Store Halfword)
+                    if (a[1])                               // upper halfword
+                        RAM[a[31:2]][31:16] <= wd[15:0];    // [31:16]
+                    else                                    // lower halfword
+                        RAM[a[31:2]][15:0] <= wd[15:0];     // [15:0]
+                2'b10: RAM[a[31:2]][7:0] <= wd[7:0];        // sb (store byte)
+                default: RAM[a[31:2]] <= wd;
+            endcase
+        end
+    end
    
 endmodule // dmem
 
