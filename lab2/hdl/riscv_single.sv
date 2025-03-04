@@ -365,8 +365,8 @@ module dmem (input  logic        clk, we,
   always_ff @(posedge clk) begin
         if (we) begin
             case(loadcontrol)
-                2'b00: RAM[a[31:2]] <= wd;                 // sw (Store Word)
-                2'b01: // SH (Store Halfword)
+                2'b00: RAM[a[31:2]] <= wd;                 // sw (store word)
+                2'b01: // sh (store halfword)
                     if (a[1])                               // upper halfword
                         RAM[a[31:2]][31:16] <= wd[15:0];    // [31:16]
                     else                                    // lower halfword
