@@ -46,7 +46,7 @@ module testbench();
    initial
      begin
 	string memfilename;
-        memfilename = {"../testing/xor.memfile"};
+        memfilename = {"../testing/sh.memfile"};
         $readmemh(memfilename, dut.imem.RAM);
      end
 
@@ -83,6 +83,7 @@ module riscvsingle (input  logic        clk, reset,
 		    input  logic [31:0] Instr,
 		    output logic 	MemWrite,
 		    output logic [31:0] ALUResult, WriteData,
+        output logic [1:0] loadcontrol,
 		    input  logic [31:0] ReadData);
    
    logic 				ALUSrc, RegWrite, Jump, Zero;
@@ -94,7 +95,7 @@ module riscvsingle (input  logic        clk, reset,
    
    controller c (Instr[6:0], Instr[14:12], Instr[30], Zero,v,Negative,Carry,
 		 ResultSrc, MemWrite, PCSrc,
-		 ALUSrc, RegWrite, Jump, JalrControl, ReginControl,
+		 ALUSrc, RegWrite, Jump, JalrControl, loadcontrol, ReginControl,
 		 ImmSrc, ALUControl);
    datapath dp (clk, reset, ResultSrc, PCSrc,
 		ALUSrc, RegWrite,
@@ -112,6 +113,7 @@ module controller (input  logic [6:0] op,
 		   output logic       MemWrite,
 		   output logic       PCSrc, ALUSrc,
 		   output logic       RegWrite, Jump, JalrControl,
+       output logic [1:0]      loadcontrol,
         output logic [1:0] ReginControl,
 		   output logic [2:0] ImmSrc,
 		   output logic [3:0] ALUControl);
@@ -132,8 +134,14 @@ module controller (input  logic [6:0] op,
     3'b101: Branchout = Branch & (Negative == v);   // bge (signed)
     3'b110: Branchout = Branch & ~Carry;                   // bltu (unsigned)
     3'b111: Branchout = Branch & Carry;                    // bgeu (unsigned)
-    //3'b111: Branchout = Branch & (~Negative | Zero);
     default: Branchout = 0;
+  endcase
+  always_comb 
+    case (funct3)
+    3'b000: loadcontrol = 2'b00; // sw
+    3'b001: loadcontrol = 2'b01; // sh
+    3'b010: loadcontrol = 2'b10; // sb
+    default: loadcontrol = 2'b00; // sw
   endcase
 endmodule // controller
 
@@ -325,19 +333,20 @@ module top (input  logic        clk, reset,
 	    output logic 	MemWrite);
    
    logic [31:0] 		PC, Instr, ReadData;
+   logic [1:0]  loadcontrol;
    
    // instantiate processor and memories
    riscvsingle rv32single (clk, reset, PC, Instr, MemWrite, DataAdr,
-			   WriteData, ReadData);
+			   WriteData, loadcontrol, ReadData);
    imem imem (PC, Instr);
-   dmem dmem (clk, MemWrite, DataAdr, WriteData, ReadData);
+   dmem dmem (clk, MemWrite, DataAdr, WriteData, loadcontrol,ReadData);
    
 endmodule // top
 
 module imem (input  logic [31:0] a,
 	     output logic [31:0] rd);
    
-   logic [31:0] 		 RAM[511:0];
+   logic [31:0] 		 RAM[1500:0];
    
    assign rd = RAM[a[31:2]]; // word aligned
    
@@ -345,13 +354,23 @@ endmodule // imem
 
 module dmem (input  logic        clk, we,
 	     input  logic [31:0] a, wd,
+       input logic [1:0] loadcontrol,
 	     output logic [31:0] rd);
    
    logic [31:0] 		 RAM[255:0];
    
    assign rd = RAM[a[31:2]]; // word aligned
-   always_ff @(posedge clk)
-     if (we) RAM[a[31:2]] <= wd;
+  //  always_ff @(posedge clk)
+  //    if (we) RAM[a[31:2]] <= wd;
+  always @(posedge clk) // NOTE: always_ff is SystemVerilog
+    if (we)
+      case(loadcontrol)
+        2'b00: RAM[a[31:2]] <= wd; // sw 
+        2'b01: RAM[a[31:0]][15:0] <= wd[15:0]; // sh
+        2'b10: RAM[a[31:0]][7:0] <= wd[7:0]; // sb // sb
+    default: RAM[a[31:2]] <= wd;
+    // do nothing
+  endcase
    
 endmodule // dmem
 
