@@ -76,6 +76,7 @@ R0
 R0
 R0
 R0
+R0
 Z1 !s12c _opt1
 R0
 R1
@@ -132,10 +133,10 @@ n@_opt1
 Z7 OL;O;2021.3;73
 R2
 T_opt2
-!s110 1741125409
-V1RJ[9C_ni]=VA8Co]B4TJ0
+!s110 1741197914
+V=kN1@LGA=7lS0ZU:NeVKm2
 R3
-=1-984827476aca-67c77720-26e-31c
+=1-bc091be69b69-67c89259-3d2-77b0
 R4
 R5
 R6
@@ -143,13 +144,13 @@ n@_opt2
 R7
 vadder
 Z8 DXx6 sv_std 3 std 0 22 9oUSJO;AeEaW`l:M@^WG92
-Z9 !s110 1741125408
+Z9 !s110 1741197913
 !i10b 1
 !s100 5M^JFA1b[VYcLb7gKXzVP3
 IajG<;Ji;ll7GA=3IznPOQ2
 S1
-Z10 dC:/Users/marii/OneDrive/Desktop/comparch_lab2/lab2/hdl
-Z11 w1741125328
+Z10 dC:/Users/osuco/Documents/comparch_lab2/lab2/hdl
+Z11 w1741188774
 Z12 8riscv_single.sv
 Z13 Friscv_single.sv
 !i122 0
@@ -159,7 +160,7 @@ Z15 OL;L;2021.3;73
 r1
 !s85 0
 31
-Z16 !s108 1741125408.000000
+Z16 !s108 1741197913.000000
 Z17 !s107 riscv_single.sv|
 Z18 !s90 riscv_single.sv|
 !i113 0
