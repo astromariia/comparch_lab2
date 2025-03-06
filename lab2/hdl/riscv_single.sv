@@ -96,12 +96,12 @@ module riscvsingle (input  logic        clk, reset,
    controller c (Instr[6:0], Instr[14:12], Instr[30], Zero,v,Negative,Carry,
 		 ResultSrc, MemWrite, PCSrc,
 		 ALUSrc, RegWrite, Jump, JalrControl, loadcontrol, ReginControl,
-		 ImmSrc, ALUControl);
+		 ImmSrc, ALUControl,load);
    datapath dp (clk, reset, ResultSrc, PCSrc,
 		ALUSrc, RegWrite,
 		ImmSrc, ALUControl,
 		Zero,v,Negative,Carry, PC, Instr,
-		ALUResult, WriteData, ReadData, JalrControl, ReginControl);
+		ALUResult, WriteData, ReadData, JalrControl, ReginControl,load);
    
 endmodule // riscvsingle
 
@@ -116,7 +116,8 @@ module controller (input  logic [6:0] op,
        output logic [1:0]      loadcontrol,
         output logic [1:0] ReginControl,
 		   output logic [2:0] ImmSrc,
-		   output logic [3:0] ALUControl);
+		   output logic [3:0] ALUControl,
+       output logic [2:0] load);
    
    logic [1:0] 			      ALUOp;
    logic 			      Branch;
@@ -143,6 +144,16 @@ module controller (input  logic [6:0] op,
         3'b010: loadcontrol = 2'b00; // SW (Store Word)
         default: loadcontrol = 2'b00; // Default to SW
     endcase
+    always_comb
+     case (funct3)
+    3'b000: load=3'b000;
+    3'b001: load=3'b001;
+    3'b010: load=3'b010;
+    3'b100: load=3'b100;
+    3'b101: load=3'b101;
+    default: load=3'bx;
+
+     endcase
 endmodule // controller
 
 module maindec (input  logic [6:0] op,
@@ -225,12 +236,14 @@ module datapath (input  logic        clk, reset,
 		 output logic [31:0] ALUResult, WriteData,
 		 input  logic [31:0] ReadData,
      input logic JalrControl,
-     input logic [1:0] ReginControl);
+     input logic [1:0] ReginControl,
+     input logic [1:0] load);
    
    logic [31:0] 		     PCNext, PCPlus4, PCTarget, PCTargetNew;
    logic [31:0] 		     ImmExt;
    logic [31:0] 		     SrcA, SrcB;
    logic [31:0] 		     Result, ResultRF;
+   logic [31:0]          LoadExtendOut;
    
    // next PC logic
    flopr #(32) pcreg (clk, reset, PCNext, PC);
@@ -244,9 +257,10 @@ module datapath (input  logic        clk, reset,
    // ALU logic
    mux2 #(32)  srcbmux (WriteData, ImmExt, ALUSrc, SrcB);
    alu  alu (SrcA, SrcB, ALUControl, ALUResult, Zero,v,Negative,Carry);
-   mux4 #(32) resultmux (ALUResult, ReadData, PCPlus4,SrcB,ResultSrc, Result);
+   mux4 #(32) resultmux (ALUResult, LoadExtendOut, PCPlus4,SrcB,ResultSrc, Result);
    mux3 #(32) Regwritesrc(Result,PCPlus4,PCTarget,ReginControl,ResultRF);
    mux2 #(32) PctargetJalr(PCTarget,ALUResult & ~32'h1,JalrControl,PCTargetNew);
+   loadextend loader(ReadData,load,LoadExtendOut);
 
 endmodule // datapath
 
@@ -278,7 +292,20 @@ module extend (input  logic [31:7] instr,
      endcase // case (immsrc)
    
 endmodule // extend
+module loadextend(input logic[31:0] MemData, input logic [2:0] load,output logic [31:0] loadedMemory);
+always_comb
+case(load)
+3'b000: loadedMemory={{26{Memdata[7]}},MemData[7:0]};
+3'b001: loadedMemory={{16{Memdata[15]}},MemData[15:0]};
+3'b010: loadedMemory=MemData;
+3'b100: loadedMemory={{26{1'b0}},MemData[7:0]};
+3'b101: loadedMemory={{16{1'b0}},MemData[15:0]};
 
+default: loadedMemory=32'bx //undefined load
+endcase//case load
+
+
+endmodule
 module flopr #(parameter WIDTH = 8)
    (input  logic             clk, reset,
     input logic [WIDTH-1:0]  d,
