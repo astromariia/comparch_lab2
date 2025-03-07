@@ -46,7 +46,7 @@ module testbench();
    initial
      begin
 	string memfilename;
-        memfilename = {"../testing/sh.memfile"};
+        memfilename = {"../testing/xor.memfile"};
         $readmemh(memfilename, dut.imem.RAM);
      end
 
@@ -295,13 +295,13 @@ endmodule // extend
 module loadextend(input logic[31:0] MemData, input logic [2:0] load,output logic [31:0] loadedMemory);
 always_comb
 case(load)
-3'b000: loadedMemory={{26{Memdata[7]}},MemData[7:0]};
-3'b001: loadedMemory={{16{Memdata[15]}},MemData[15:0]};
+3'b000: loadedMemory={{26{MemData[7]}},MemData[7:0]};
+3'b001: loadedMemory={{16{MemData[15]}},MemData[15:0]};
 3'b010: loadedMemory=MemData;
 3'b100: loadedMemory={{26{1'b0}},MemData[7:0]};
 3'b101: loadedMemory={{16{1'b0}},MemData[15:0]};
 
-default: loadedMemory=32'bx //undefined load
+default: loadedMemory=32'bx; //undefined load
 endcase//case load
 
 
@@ -366,7 +366,7 @@ module top (input  logic        clk, reset,
    riscvsingle rv32single (clk, reset, PC, Instr, MemWrite, DataAdr,
 			   WriteData, loadcontrol, ReadData);
    imem imem (PC, Instr);
-   dmem dmem (clk, MemWrite, DataAdr, WriteData, loadcontrol,ReadData);
+   dmem dmem (clk, MemWrite, DataAdr, WriteData, ReadData);
    
 endmodule // top
 
@@ -381,28 +381,13 @@ endmodule // imem
 
 module dmem (input  logic        clk, we,
 	     input  logic [31:0] a, wd,
-       input logic [1:0] loadcontrol,
 	     output logic [31:0] rd);
    
    logic [31:0] 		 RAM[255:0];
    
    assign rd = RAM[a[31:2]]; // word aligned
-  //  always_ff @(posedge clk)
-  //    if (we) RAM[a[31:2]] <= wd;
-  always_ff @(posedge clk) begin
-        if (we) begin
-            case(loadcontrol)
-                2'b00: RAM[a[31:2]] <= wd;                 // sw (store word)
-                2'b01: // sh (store halfword)
-                    if (a[1])                               // upper halfword
-                        RAM[a[31:2]][31:16] <= wd[15:0];    // [31:16]
-                    else                                    // lower halfword
-                        RAM[a[31:2]][15:0] <= wd[15:0];     // [15:0]
-                2'b10: RAM[a[31:2]][7:0] <= wd[7:0];        // sb (store byte)
-                default: RAM[a[31:2]] <= wd;
-            endcase
-        end
-    end
+   always_ff @(posedge clk)
+     if (we) RAM[a[31:2]] <= wd;
    
 endmodule // dmem
 
