@@ -297,12 +297,12 @@ endmodule // extend
 module loadextend(input logic [31:0]ALUResult,input logic[31:0] MemData, input logic [2:0] load,output logic [31:0] loadedMemory);
 always_comb
 case(load)
-3'b000: loadedMemory = ALUResult[0] ? ( ALUResult[1] ? {{24{MemData[31]}},MemData[31:23]} : {{24{MemData[15]}},MemData[15:7]}):
-(ALUResult[1] ? {{24{MemData[23]}},MemData[23:17]} : {{24{MemData[7]}},MemData[7:0]});
+3'b000: loadedMemory = ALUResult[0] ? ( ALUResult[1] ? {{24{MemData[31]}},MemData[31:24]} : {{24{MemData[15]}},MemData[15:8]}):
+(ALUResult[1] ? {{24{MemData[23]}},MemData[23:16]} : {{24{MemData[7]}},MemData[7:0]});
 3'b001: loadedMemory={{16{MemData[15]}},MemData[15:0]};
 3'b010: loadedMemory=MemData;
-3'b100: loadedMemory= ALUResult[0] ? ( ALUResult[1]? {24'b0,MemData[31:23]}: {24'b0,MemData[15:7]}):
-(ALUResult[1] ? {24'b0,MemData[23:17]} : {24'b0,MemData[7:0]});
+3'b100: loadedMemory= ALUResult[0] ? ( ALUResult[1]? {24'b0,MemData[31:24]}: {24'b0,MemData[15:8]}):
+(ALUResult[1] ? {24'b0,MemData[23:16]} : {24'b0,MemData[7:0]});
 3'b101: loadedMemory={{16{1'b0}},MemData[15:0]};
 
 default: loadedMemory=32'bx; //undefined load
