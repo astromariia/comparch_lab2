@@ -103,7 +103,7 @@ module riscvsingle (input  logic        clk, reset,
 		ALUSrc, RegWrite,
 		ImmSrc, ALUControl,
 		Zero,v,Negative,Carry, PC, Instr,
-		ALUResult, WriteData, ReadData, JalrControl, ReginControl,load);
+		ALUResult, WriteData, ReadData, JalrControl, ReginControl,load, loadcontrol);
    
 endmodule // riscvsingle
 
@@ -239,13 +239,16 @@ module datapath (input  logic        clk, reset,
 		 input  logic [31:0] ReadData,
      input logic JalrControl,
      input logic [1:0] ReginControl,
-     input logic [2:0] load);
+     input logic [2:0] load,
+     input logic [1:0] loadcontrol);
    
    logic [31:0] 		     PCNext, PCPlus4, PCTarget, PCTargetNew;
    logic [31:0] 		     ImmExt;
    logic [31:0] 		     SrcA, SrcB;
    logic [31:0] 		     Result, ResultRF;
    logic [31:0]          LoadExtendOut;
+   logic [31:0]          wd; 
+   logic [31:0]          storedMemory;     
    
    // next PC logic
    flopr #(32) pcreg (clk, reset, PCNext, PC);
@@ -254,15 +257,16 @@ module datapath (input  logic        clk, reset,
    mux2 #(32)  pcmux (PCPlus4, PCTargetNew, PCSrc, PCNext);
    // register file logic
    regfile  rf (clk, RegWrite, Instr[19:15], Instr[24:20],
-	       Instr[11:7], ResultRF, SrcA, WriteData);
+	       Instr[11:7], ResultRF, SrcA, wd);
    extend  ext (Instr[31:7], ImmSrc, ImmExt);
    // ALU logic
-   mux2 #(32)  srcbmux (WriteData, ImmExt, ALUSrc, SrcB);
+   mux2 #(32)  srcbmux (wd, ImmExt, ALUSrc, SrcB);
    alu  alu (SrcA, SrcB, ALUControl, ALUResult, Zero,v,Negative,Carry);
    mux4 #(32) resultmux (ALUResult, LoadExtendOut, PCPlus4,SrcB,ResultSrc, Result);
    mux3 #(32) Regwritesrc(Result,PCPlus4,PCTarget,ReginControl,ResultRF);
    mux2 #(32) PctargetJalr(PCTarget,ALUResult & ~32'h1,JalrControl,PCTargetNew);
    loadextend loader(ALUResult,ReadData,load,LoadExtendOut);
+   store store(ALUResult, WriteData, ReadData, loadcontrol, storedMemory);
 
 endmodule // datapath
 
@@ -298,15 +302,29 @@ module loadextend(input logic [31:0]ALUResult,input logic[31:0] MemData, input l
 always_comb
 case(load)
 3'b000: loadedMemory = ALUResult[0] ? ( ALUResult[1] ? {{24{MemData[31]}},MemData[31:24]} : {{24{MemData[15]}},MemData[15:8]}):
-(ALUResult[1] ? {{24{MemData[23]}},MemData[23:16]} : {{24{MemData[7]}},MemData[7:0]});
-3'b001: loadedMemory={{16{MemData[15]}},MemData[15:0]};
-3'b010: loadedMemory=MemData;
+(ALUResult[1] ? {{24{MemData[23]}},MemData[23:16]} : {{24{MemData[7]}},MemData[7:0]}); // lb
+3'b001: loadedMemory={{16{MemData[15]}},MemData[15:0]}; // Lh
+3'b010: loadedMemory=MemData; //lw
 3'b100: loadedMemory= ALUResult[0] ? ( ALUResult[1]? {24'b0,MemData[31:24]}: {24'b0,MemData[15:8]}):
-(ALUResult[1] ? {24'b0,MemData[23:16]} : {24'b0,MemData[7:0]});
-3'b101: loadedMemory={{16{1'b0}},MemData[15:0]};
+(ALUResult[1] ? {24'b0,MemData[23:16]} : {24'b0,MemData[7:0]}); // lbu
+3'b101: loadedMemory={{16{1'b0}},MemData[15:0]}; //lhu
 
 default: loadedMemory=32'bx; //undefined load
 endcase//case load
+
+module store (input logic [31:0] ALUResult, 
+  input logic [31:0] WriteData, 
+  input logic [31:0] ReadData, 
+  input logic [1:0] loadcontrol,
+  output logic [31:0] storedMemory);
+  always_comb
+  case(loadcontrol)
+  2'b00: storedMemory =  WriteData; // SW (Store Word)
+  2'b01: storedMemory= ALUResult[1] ? {WriteData[15:0], ReadData[15:0]}: {ReadData[31:16], WriteData[15:0]}; // SH (Store Halfword)
+  2'b10: storedMemory= WriteData; // SB (Store Byte) 
+  default: storedMemory =32'bx; // Default to SW
+  endcase
+endmodule
 
 
 endmodule
