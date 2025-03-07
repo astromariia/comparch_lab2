@@ -295,10 +295,10 @@ endmodule // extend
 module loadextend(input logic[31:0] MemData, input logic [2:0] load,output logic [31:0] loadedMemory);
 always_comb
 case(load)
-3'b000: loadedMemory={{26{MemData[7]}},MemData[7:0]};
+3'b000: loadedMemory={{24{MemData[7]}},MemData[7:0]};
 3'b001: loadedMemory={{16{MemData[15]}},MemData[15:0]};
 3'b010: loadedMemory=MemData;
-3'b100: loadedMemory={{26{1'b0}},MemData[7:0]};
+3'b100: loadedMemory={{24{1'b0}},MemData[7:0]};
 3'b101: loadedMemory={{16{1'b0}},MemData[15:0]};
 
 default: loadedMemory=32'bx; //undefined load
