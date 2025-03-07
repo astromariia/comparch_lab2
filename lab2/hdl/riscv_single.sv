@@ -46,8 +46,9 @@ module testbench();
    initial
      begin
 	string memfilename;
-        memfilename = {"../testing/xor.memfile"};
+        memfilename = {"../testing/lb.memfile"};
         $readmemh(memfilename, dut.imem.RAM);
+        $readmemh(memfilename, dut.dmem.RAM);
      end
 
    
@@ -92,6 +93,7 @@ module riscvsingle (input  logic        clk, reset,
    logic [3:0] 				ALUControl;
    logic JalrControl;
    logic [1:0] ReginControl;
+   logic [2:0] load;
    
    controller c (Instr[6:0], Instr[14:12], Instr[30], Zero,v,Negative,Carry,
 		 ResultSrc, MemWrite, PCSrc,
@@ -237,7 +239,7 @@ module datapath (input  logic        clk, reset,
 		 input  logic [31:0] ReadData,
      input logic JalrControl,
      input logic [1:0] ReginControl,
-     input logic [1:0] load);
+     input logic [2:0] load);
    
    logic [31:0] 		     PCNext, PCPlus4, PCTarget, PCTargetNew;
    logic [31:0] 		     ImmExt;
@@ -260,7 +262,7 @@ module datapath (input  logic        clk, reset,
    mux4 #(32) resultmux (ALUResult, LoadExtendOut, PCPlus4,SrcB,ResultSrc, Result);
    mux3 #(32) Regwritesrc(Result,PCPlus4,PCTarget,ReginControl,ResultRF);
    mux2 #(32) PctargetJalr(PCTarget,ALUResult & ~32'h1,JalrControl,PCTargetNew);
-   loadextend loader(ReadData,load,LoadExtendOut);
+   loadextend loader(ALUResult,ReadData,load,LoadExtendOut);
 
 endmodule // datapath
 
@@ -292,13 +294,15 @@ module extend (input  logic [31:7] instr,
      endcase // case (immsrc)
    
 endmodule // extend
-module loadextend(input logic[31:0] MemData, input logic [2:0] load,output logic [31:0] loadedMemory);
+module loadextend(input logic [31:0]ALUResult,input logic[31:0] MemData, input logic [2:0] load,output logic [31:0] loadedMemory);
 always_comb
 case(load)
-3'b000: loadedMemory={{24{MemData[7]}},MemData[7:0]};
+3'b000: loadedMemory = ALUResult[0] ? ( ALUResult[1] ? {{24{MemData[31]}},MemData[31:23]} : {{24{MemData[15]}},MemData[15:7]}):
+(ALUResult[1] ? {{24{MemData[23]}},MemData[23:17]} : {{24{MemData[7]}},MemData[7:0]});
 3'b001: loadedMemory={{16{MemData[15]}},MemData[15:0]};
 3'b010: loadedMemory=MemData;
-3'b100: loadedMemory={{24{1'b0}},MemData[7:0]};
+3'b100: loadedMemory= ALUResult[0] ? ( ALUResult[1]? {24'b0,MemData[31:23]}: {24'b0,MemData[15:7]}):
+(ALUResult[1] ? {24'b0,MemData[23:17]} : {24'b0,MemData[7:0]});
 3'b101: loadedMemory={{16{1'b0}},MemData[15:0]};
 
 default: loadedMemory=32'bx; //undefined load
@@ -383,7 +387,7 @@ module dmem (input  logic        clk, we,
 	     input  logic [31:0] a, wd,
 	     output logic [31:0] rd);
    
-   logic [31:0] 		 RAM[255:0];
+   logic [31:0] 		 RAM[2047:0];
    
    assign rd = RAM[a[31:2]]; // word aligned
    always_ff @(posedge clk)
