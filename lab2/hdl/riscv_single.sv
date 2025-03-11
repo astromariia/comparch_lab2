@@ -46,7 +46,7 @@ module testbench();
    initial
      begin
 	string memfilename;
-        memfilename = {"../testing/lb.memfile"};
+        memfilename = {"../testing/sh.memfile"};
         $readmemh(memfilename, dut.imem.RAM);
         $readmemh(memfilename, dut.dmem.RAM);
      end
@@ -72,7 +72,7 @@ module testbench();
               $display("Simulation succeeded");
               $stop;
            end else if (DataAdr !== 96) begin
-              $display("Simulation failed");
+              $display("Simulation failed: Addr=%h, Data=%h", DataAdr, WriteData);
               $stop;
            end
 	end
@@ -311,6 +311,7 @@ case(load)
 
 default: loadedMemory=32'bx; //undefined load
 endcase//case load
+endmodule
 
 module store (input logic [31:0] ALUResult, 
   input logic [31:0] WriteData, 
@@ -321,13 +322,19 @@ module store (input logic [31:0] ALUResult,
   case(loadcontrol)
   2'b00: storedMemory =  WriteData; // SW (Store Word)
   2'b01: storedMemory= ALUResult[1] ? {WriteData[15:0], ReadData[15:0]}: {ReadData[31:16], WriteData[15:0]}; // SH (Store Halfword)
-  2'b10: storedMemory= WriteData; // SB (Store Byte) 
+  2'b10: storedMemory = ALUResult[1] ? 
+    (ALUResult[0] ? 
+      {WriteData[7:0], ReadData[23:0]} :      //byte 3 (31:24)
+      {ReadData[31:24], WriteData[7:0], ReadData[15:0]} //byte 2 (23:16)
+    ) : 
+    (ALUResult[0] ? 
+      {ReadData[31:16], WriteData[7:0], ReadData[7:0]} : //byte 1 (15:8)
+      {ReadData[31:8], WriteData[7:0]}        //byte 0 (7:0)          
+    );//sb
   default: storedMemory =32'bx; // Default to SW
   endcase
 endmodule
 
-
-endmodule
 module flopr #(parameter WIDTH = 8)
    (input  logic             clk, reset,
     input logic [WIDTH-1:0]  d,
