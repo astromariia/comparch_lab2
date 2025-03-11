@@ -46,7 +46,7 @@ module testbench();
    initial
      begin
 	string memfilename;
-        memfilename = {"../testing/sh.memfile"};
+        memfilename = {"../testing/sw.memfile"};
         $readmemh(memfilename, dut.imem.RAM);
         $readmemh(memfilename, dut.dmem.RAM);
      end
@@ -266,7 +266,7 @@ module datapath (input  logic        clk, reset,
    mux3 #(32) Regwritesrc(Result,PCPlus4,PCTarget,ReginControl,ResultRF);
    mux2 #(32) PctargetJalr(PCTarget,ALUResult & ~32'h1,JalrControl,PCTargetNew);
    loadextend loader(ALUResult,ReadData,load,LoadExtendOut);
-   store store(ALUResult, WriteData, ReadData, loadcontrol, storedMemory);
+   store store(ALUResult, wd, ReadData, loadcontrol, WriteData);
 
 endmodule // datapath
 
@@ -298,6 +298,7 @@ module extend (input  logic [31:7] instr,
      endcase // case (immsrc)
    
 endmodule // extend
+
 module loadextend(input logic [31:0]ALUResult,input logic[31:0] MemData, input logic [2:0] load,output logic [31:0] loadedMemory);
 always_comb
 case(load)
@@ -331,7 +332,7 @@ module store (input logic [31:0] ALUResult,
       {ReadData[31:16], WriteData[7:0], ReadData[7:0]} : //byte 1 (15:8)
       {ReadData[31:8], WriteData[7:0]}        //byte 0 (7:0)          
     );//sb
-  default: storedMemory =32'bx; // Default to SW
+  default: storedMemory =WriteData; // Default to SW
   endcase
 endmodule
 
