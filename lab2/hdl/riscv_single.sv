@@ -46,7 +46,7 @@ module testbench();
    initial
      begin
 	string memfilename;
-        memfilename = {"../testing/sw.memfile"};
+        memfilename = {"../testing/lb.memfile"};
         $readmemh(memfilename, dut.imem.RAM);
         $readmemh(memfilename, dut.dmem.RAM);
      end
@@ -304,11 +304,11 @@ always_comb
 case(load)
 3'b000: loadedMemory = ALUResult[0] ? ( ALUResult[1] ? {{24{MemData[31]}},MemData[31:24]} : {{24{MemData[15]}},MemData[15:8]}):
 (ALUResult[1] ? {{24{MemData[23]}},MemData[23:16]} : {{24{MemData[7]}},MemData[7:0]}); // lb
-3'b001: loadedMemory={{16{MemData[15]}},MemData[15:0]}; // Lh
+3'b001: loadedMemory = ALUResult[1] ? {{16{MemData[31]}}, MemData[31:16]} : {{16{MemData[15]}}, MemData[15:0]}; // Lh
 3'b010: loadedMemory=MemData; //lw
 3'b100: loadedMemory= ALUResult[0] ? ( ALUResult[1]? {24'b0,MemData[31:24]}: {24'b0,MemData[15:8]}):
 (ALUResult[1] ? {24'b0,MemData[23:16]} : {24'b0,MemData[7:0]}); // lbu
-3'b101: loadedMemory={{16{1'b0}},MemData[15:0]}; //lhu
+3'b101: loadedMemory = ALUResult[1] ? {16'b0, MemData[31:16]} : {16'b0, MemData[15:0]};  //lhu
 
 default: loadedMemory=32'bx; //undefined load
 endcase//case load
