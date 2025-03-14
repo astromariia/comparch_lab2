@@ -166,17 +166,17 @@ module maindec (input  logic [6:0] op,
    always_comb
      case(op)
        // RegWrite_ReginControl_ImmSrc_ALUSrc_MemWrite_ResultSrc_Branch_ALUOp_Jump_JalrControl_MemStrobe
-       7'b0000011: controls = 15'b1_00_000_1_0_01_0_00_0_0_1; // lw
-       7'b0100011: controls = 15'b0_00_001_1_1_00_0_00_0_0_1; // sw
-       7'b0110011: controls = 15'b1_00_000_0_0_00_0_10_0_0_0; // R-type (corrected ImmSrc)
-       7'b1100011: controls = 15'b0_00_010_0_0_00_1_01_0_0_0; // beq
-       7'b0010011: controls = 15'b1_00_000_1_0_00_0_10_0_0_0; // I-type ALU
-       7'b1101111: controls = 15'b1_00_011_0_0_10_0_00_1_0_0; // jal
-       7'b0110111: controls = 15'b1_00_100_1_0_11_0_XX_0_0_0; // lui
-       7'b0010111: controls = 15'b1_10_100_1_0_11_0_XX_0_0_0; // auipc
+       7'b0000011: controls = 16'b1_00_000_1_0_01_0_00_0_0_1; // lw
+       7'b0100011: controls = 16'b0_00_001_1_1_00_0_00_0_0_1; // sw
+       7'b0110011: controls = 16'b1_00_000_0_0_00_0_10_0_0_0; // R-type (corrected ImmSrc)
+       7'b1100011: controls = 16'b0_00_010_0_0_00_1_01_0_0_0; // beq
+       7'b0010011: controls = 16'b1_00_000_1_0_00_0_10_0_0_0; // I-type ALU
+       7'b1101111: controls = 16'b1_00_011_0_0_10_0_00_1_0_0; // jal
+       7'b0110111: controls = 16'b1_00_100_1_0_11_0_XX_0_0_0; // lui
+       7'b0010111: controls = 16'b1_10_100_1_0_11_0_XX_0_0_0; // auipc
        //7'b1100111: controls = 15'b1_01_011_0_0_10_0_00_1_1; // jalr
-       7'b1100111: controls = 15'b1_01_000_1_0_10_0_00_1_1_0; //jalr 
-       default:    controls = 15'bx_xx_xxx_x_x_xx_x_xx_x_x_x; // default case
+       7'b1100111: controls = 16'b1_01_000_1_0_10_0_00_1_1_0; //jalr 
+       default:    controls = 16'bx_xx_xxx_x_x_xx_x_xx_x_x_x; // default case
      endcase // case (op)
    
 endmodule // maindec

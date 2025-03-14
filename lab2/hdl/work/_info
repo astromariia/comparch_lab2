@@ -133,6 +133,8 @@ R0
 R0
 R0
 R0
+R0
+R0
 Z1 !s12c _opt1
 R0
 R1
@@ -211,10 +213,10 @@ n@_opt3
 R7
 R2
 T_opt4
-!s110 1741984183
-V2IZ:@h<L5?f6[Tm`z:Wjn2
+!s110 1741984444
+VNabchSR62l?d^SHML[ml:2
 R3
-=1-bc091be69b69-67d491b7-30-492c
+=1-bc091be69b69-67d492bc-105-604
 R4
 R5
 R6
@@ -222,13 +224,13 @@ n@_opt4
 R7
 vadder
 Z8 DXx6 sv_std 3 std 0 22 9oUSJO;AeEaW`l:M@^WG92
-Z9 !s110 1741984182
+Z9 !s110 1741984443
 !i10b 1
 !s100 ZIh>o?<j]V[h`;FazWJEI0
 I24iZ`JeWON[>Qob9cb;>j2
 S1
 Z10 dC:/Users/osuco/Documents/comparch_lab2/lab2/hdl
-Z11 w1741984175
+Z11 w1741984423
 Z12 8riscv_single.sv
 Z13 Friscv_single.sv
 !i122 0
@@ -238,9 +240,9 @@ Z15 OL;L;2021.3;73
 r1
 !s85 0
 31
-Z16 !s108 1741984182.000000
+Z16 !s108 1741984443.000000
 Z17 !s107 riscv_single.sv|
-Z18 !s90 riscv_single.sv|
+Z18 !s90 -reportprogress|300|riscv_single.sv|
 !i113 0
 Z19 o-L mtiAvm -L mtiRnm -L mtiOvm -L mtiUvm -L mtiUPF -L infact
 R6
@@ -488,8 +490,8 @@ vmaindec
 R8
 R9
 !i10b 1
-!s100 1X[hAg0lI]a6:DKLcNb@H3
-IJNjFkYcnf0`029zdH6QEc2
+!s100 L]0Ij8@D;_i8Q^Q8Y^ik40
+IZYVDaGLoSFbGD0`_`a=8I1
 S1
 R10
 R11
@@ -680,8 +682,8 @@ vtop
 R8
 R9
 !i10b 1
-!s100 `RVg4eO89HVTbiDLjBB@X0
-IeL=PlAV4XKEBlDNM4b`Va2
+!s100 >;K4`B;Ug0B^53CGWdR1Q0
+I5H=P2e:S2gkm?O4<^ZZ>:3
 S1
 R10
 R11
