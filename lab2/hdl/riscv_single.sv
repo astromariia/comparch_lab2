@@ -72,7 +72,8 @@ module riscvsingle (input  logic        clk, reset,
 		    output logic 	MemWrite,
 		    output logic [31:0] ALUResult, WriteData,
         output logic [1:0] loadcontrol,
-		    input  logic [31:0] ReadData);
+		    input  logic [31:0] ReadData,
+        input  logic PCReady);
    
    logic 				ALUSrc, RegWrite, Jump, Zero;
    logic [1:0] 				ResultSrc;
@@ -85,12 +86,12 @@ module riscvsingle (input  logic        clk, reset,
    controller c (Instr[6:0], Instr[14:12], Instr[30], Zero,v,Negative,Carry,
 		 ResultSrc, MemWrite, PCSrc,
 		 ALUSrc, RegWrite, Jump, JalrControl, loadcontrol, ReginControl,
-		 ImmSrc, ALUControl,load);
+		 ImmSrc, ALUControl,load,MemStrobe);
    datapath dp (clk, reset, ResultSrc, PCSrc,
 		ALUSrc, RegWrite,
 		ImmSrc, ALUControl,
 		Zero,v,Negative,Carry, PC, Instr,
-		ALUResult, WriteData, ReadData, JalrControl, ReginControl,load, loadcontrol);
+		ALUResult, WriteData, ReadData, JalrControl, ReginControl,load, loadcontrol,PCReady);
    
 endmodule // riscvsingle
 
@@ -106,14 +107,15 @@ module controller (input  logic [6:0] op,
         output logic [1:0] ReginControl,
 		   output logic [2:0] ImmSrc,
 		   output logic [3:0] ALUControl,
-       output logic [2:0] load);
+       output logic [2:0] load,
+       output logic MemStrobe);
    
    logic [1:0] 			      ALUOp;
    logic 			      Branch;
    logic Branchout;
 
    maindec md (op, ResultSrc, MemWrite, Branch,
-	       ALUSrc, RegWrite, Jump, JalrControl, ReginControl, ImmSrc, ALUOp);
+	       ALUSrc, RegWrite, Jump, JalrControl, ReginControl, ImmSrc, ALUOp,MemStrobe);
    aludec ad (op[5], funct3, funct7b5, ALUOp, ALUControl);
    assign PCSrc = Branchout | Jump; //Branch & (Zero ^ funct3[0])
    always_comb
@@ -152,28 +154,29 @@ module maindec (input  logic [6:0] op,
 		output logic 	   RegWrite, Jump, JalrControl,
     output logic [1:0] ReginControl,
 		output logic [2:0] ImmSrc,
-		output logic [1:0] ALUOp);
+		output logic [1:0] ALUOp,
+    output logic MemStrobe);
    
-   logic [14:0] 		   controls;
+   logic [15:0] 		   controls;
    
     assign {RegWrite, ReginControl, ImmSrc, ALUSrc, MemWrite,
-            ResultSrc, Branch, ALUOp, Jump, JalrControl} = controls;
+            ResultSrc, Branch, ALUOp, Jump, JalrControl,MemStrobe} = controls;
 
    
    always_comb
      case(op)
-       // RegWrite_ReginControl_ImmSrc_ALUSrc_MemWrite_ResultSrc_Branch_ALUOp_Jump_JalrControl
-       7'b0000011: controls = 15'b1_00_000_1_0_01_0_00_0_0; // lw
-       7'b0100011: controls = 15'b0_00_001_1_1_00_0_00_0_0; // sw
-       7'b0110011: controls = 15'b1_00_000_0_0_00_0_10_0_0; // R-type (corrected ImmSrc)
-       7'b1100011: controls = 15'b0_00_010_0_0_00_1_01_0_0; // beq
-       7'b0010011: controls = 15'b1_00_000_1_0_00_0_10_0_0; // I-type ALU
-       7'b1101111: controls = 15'b1_00_011_0_0_10_0_00_1_0; // jal
-       7'b0110111: controls = 15'b1_00_100_1_0_11_0_XX_0_0; // lui
-       7'b0010111: controls = 15'b1_10_100_1_0_11_0_XX_0_0; // auipc
+       // RegWrite_ReginControl_ImmSrc_ALUSrc_MemWrite_ResultSrc_Branch_ALUOp_Jump_JalrControl_MemStrobe
+       7'b0000011: controls = 15'b1_00_000_1_0_01_0_00_0_0_1; // lw
+       7'b0100011: controls = 15'b0_00_001_1_1_00_0_00_0_0_1; // sw
+       7'b0110011: controls = 15'b1_00_000_0_0_00_0_10_0_0_0; // R-type (corrected ImmSrc)
+       7'b1100011: controls = 15'b0_00_010_0_0_00_1_01_0_0_0; // beq
+       7'b0010011: controls = 15'b1_00_000_1_0_00_0_10_0_0_0; // I-type ALU
+       7'b1101111: controls = 15'b1_00_011_0_0_10_0_00_1_0_0; // jal
+       7'b0110111: controls = 15'b1_00_100_1_0_11_0_XX_0_0_0; // lui
+       7'b0010111: controls = 15'b1_10_100_1_0_11_0_XX_0_0_0; // auipc
        //7'b1100111: controls = 15'b1_01_011_0_0_10_0_00_1_1; // jalr
-       7'b1100111: controls = 15'b1_01_000_1_0_10_0_00_1_1; //jalr 
-       default:    controls = 15'bx_xx_xxx_x_x_xx_x_xx_x_x; // default case
+       7'b1100111: controls = 15'b1_01_000_1_0_10_0_00_1_1_0; //jalr 
+       default:    controls = 15'bx_xx_xxx_x_x_xx_x_xx_x_x_x; // default case
      endcase // case (op)
    
 endmodule // maindec
@@ -227,7 +230,8 @@ module datapath (input  logic        clk, reset,
      input logic JalrControl,
      input logic [1:0] ReginControl,
      input logic [2:0] load,
-     input logic [1:0] loadcontrol);
+     input logic [1:0] loadcontrol,
+     input logic PCReady);
    
    logic [31:0] 		     PCNext, PCPlus4, PCTarget, PCTargetNew;
    logic [31:0] 		     ImmExt;
@@ -238,7 +242,7 @@ module datapath (input  logic        clk, reset,
    logic [31:0]          storedMemory;     
    
    // next PC logic
-   flopr #(32) pcreg (clk, reset, PCNext, PC);
+   flopenr #(32) pcreg (clk, reset,PCReady, PCNext, PC);
    adder  pcadd4 (PC, 32'd4, PCPlus4);
    adder  pcaddbranch (PC, ImmExt, PCTarget);
    mux2 #(32)  pcmux (PCPlus4, PCTargetNew, PCSrc, PCNext);
@@ -378,10 +382,11 @@ module top (input  logic        clk, reset,
    
    logic [31:0] 		PC, Instr, ReadData;
    logic [1:0]  loadcontrol;
-   
+   logic PCReady;
+   assign PCReady=1'b1;
    // instantiate processor and memories
    riscvsingle rv32single (clk, reset, PC, Instr, MemWrite, DataAdr,
-			   WriteData, loadcontrol, ReadData);
+			   WriteData, loadcontrol, ReadData,PCReady);
    imem imem (PC, Instr);
    dmem dmem (clk, MemWrite, DataAdr, WriteData, ReadData);
    
