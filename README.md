@@ -4,3 +4,15 @@ This single-cycle RISC-V processor executes one instruction per clock cycle. It 
 It supports different types of instructions, including R-type, I-type, S-type, B-type, U-type, and J-type. Load and store operations work with bytes, halfwords, and words, using sign or zero extension as needed. Those instructions utilize the loadextend and store modules. 
 
 Branching is handled using the ALU’s Zero, Carry, and overflow flags, while jump instructions update the PC and store return addresses. Memory accesses are word-aligned, with lw/sw moving data between registers and memory.
+
+We added a few extra components in the datapath to carry out some of the trickier instructions, such as loads,stores, AUIPC and JAL to name a few
+
+for LUI, we connected the sourceB mux output as one of the inputs to the result mux
+
+For load and store we did a similar technique for each, but placed them in different parts of the architecture. for each, we made an extender-esque module. The loader is simpler, it takes in the ALU result, to find the place in word to take data from, the data that is being loaded, and a control signal to decide on the type of load (half, word or byte).
+
+Store works very similarly, taking in ALUresult for placement within the word, but it requires the data already in memory at that location and the data in a register that will be stored, and using logic based on the ALUresult and another control signal, combines the data correctly and stores it into memory.
+
+We also added an extra mux right before the writedata port of the register. the inputs it chooses from are result mux output, PC+4 and PCtarget, in almost all cases it uses the result mux register. That mux is used to handle instructions like AUIPC and JAL, where something related to the PC must be written into a register.
+
+This didn't make it into the final design, but instead of using the bit concatenation assignment for our carryout, we tried to do it with combinational logic based on the ALU inputs, and the sum. It didn't work out, but we tried it.
