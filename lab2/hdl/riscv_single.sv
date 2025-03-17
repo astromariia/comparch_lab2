@@ -376,21 +376,21 @@ module mux4 #(parameter WIDTH = 8)
    
 endmodule // mux4
 
-module top (input  logic        clk, reset,
-	    output logic [31:0] WriteData, DataAdr,
-	    output logic 	MemWrite);
+// module top (input  logic        clk, reset,
+// 	    output logic [31:0] WriteData, DataAdr,
+// 	    output logic 	MemWrite);
    
-   logic [31:0] 		PC, Instr, ReadData;
-   logic [1:0]  loadcontrol;
-   logic PCReady;
-   assign PCReady=1'b1;
-   // instantiate processor and memories
-   riscvsingle rv32single (clk, reset, PC, Instr, MemWrite, DataAdr,
-			   WriteData, loadcontrol, ReadData,PCReady);
-   imem imem (PC, Instr);
-   dmem dmem (clk, MemWrite, DataAdr, WriteData, ReadData);
+//    logic [31:0] 		PC, Instr, ReadData;
+//    logic [1:0]  loadcontrol;
+//    logic PCReady;
+//    assign PCReady=1'b1;
+//    // instantiate processor and memories
+//    riscvsingle rv32single (clk, reset, PC, Instr, MemWrite, DataAdr,
+// 			   WriteData, loadcontrol, ReadData,PCReady);
+//    imem imem (PC, Instr);
+//    dmem dmem (clk, MemWrite, DataAdr, WriteData, ReadData);
    
-endmodule // top
+// endmodule // top
 
 module imem (input  logic [31:0] a,
 	     output logic [31:0] rd);
