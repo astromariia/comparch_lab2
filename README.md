@@ -19,3 +19,5 @@ Store works very similarly, taking in ALUresult for placement within the word, b
 We also added an extra mux right before the writedata port of the register. the inputs it chooses from are result mux output, PC+4 and PCtarget, in almost all cases it uses the result mux register. That mux is used to handle instructions like AUIPC and JAL, where something related to the PC must be written into a register.
 
 This didn't make it into the final design, but instead of using the bit concatenation assignment for our carryout, we tried to do it with combinational logic based on the ALU inputs, and the sum. It didn't work out, but we tried it.
+# Implementation
+The issue we ran into in lab, was that the FPGA was not registering in Vivado. We switched out different FPGAs and none of them connected. We did provide the screenshot of Vivado showing that we generated a bitstream, therefore we think the design worked.
