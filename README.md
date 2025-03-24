@@ -11,6 +11,9 @@ for LUI, we connected the sourceB mux output as one of the inputs to the result 
 
 For load and store we did a similar technique for each, but placed them in different parts of the architecture. for each, we made an extender-esque module. The loader is simpler, it takes in the ALU result, to find the place in word to take data from, the data that is being loaded, and a control signal to decide on the type of load (half, word or byte).
 
+#Implementation
+For some reason the Elvis FPGA was not registering. We switched out multiple FPGAs, but that didn't make the device show up when we Auto Connect. In our files there is a picture of Vivado showing the Bitstream was generated, therefore we believe our design works.
+
 Store works very similarly, taking in ALUresult for placement within the word, but it requires the data already in memory at that location and the data in a register that will be stored, and using logic based on the ALUresult and another control signal, combines the data correctly and stores it into memory.
 
 We also added an extra mux right before the writedata port of the register. the inputs it chooses from are result mux output, PC+4 and PCtarget, in almost all cases it uses the result mux register. That mux is used to handle instructions like AUIPC and JAL, where something related to the PC must be written into a register.
